@@ -1,0 +1,8 @@
+POST http://localhost:8080/api/orders
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "totalAmount": 100000000,
+  "pointAmount": 0
+}
