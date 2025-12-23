@@ -20,7 +20,7 @@ public class OrderController {
             orderService.processOrder(orderRequest.userId(), orderRequest.totalAmount(), orderRequest.pointAmount());
             return ResponseEntity.ok("결제 완료!");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("결제에 실패했습니다.");
         }
     }
 

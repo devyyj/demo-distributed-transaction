@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  # 주문 서비스용 데이터베이스
+  order-db:
+    image: mariadb:latest
+    container_name: order-db
+    ports:
+      - "3306:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: order_db
+    volumes:
+      - ./data/order:/var/lib/mysql

@@ -1,0 +1,15 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    # Docker Compose에서 설정한 3307 포트와 point_db 데이터베이스 사용
+    url: jdbc:mariadb://localhost:3307/point_db
+    username: root
+    password: root
+    driver-class-name: org.mariadb.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
