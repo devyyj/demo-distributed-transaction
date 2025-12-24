@@ -14,3 +14,25 @@ spring:
       # 엔티티 기반으로 테이블 자동 생성 및 수정
       ddl-auto: update
     show-sql: true
+
+  cloud:
+    stream:
+      function:
+        definition: pointDeductedConsumer;cardResultConsumer
+      bindings:
+        # 발행: 주문 생성 (포인트 차감 요청)
+        orderCreated-out-0:
+          destination: order-events
+        # 구독: 포인트 차감 완료 알림
+        pointDeductedConsumer-in-0:
+          destination: point-events
+          group: order-service-group
+        # 발행: 카드 결제 결과 (내부 전파용)
+        cardResult-out-0:
+          destination: card-events
+        # 구독: 최종 결제 결과 (상태 업데이트용)
+        cardResultConsumer-in-0:
+          destination: card-events
+          group: order-service-group
+  kafka:
+    bootstrap-servers: localhost:9092
