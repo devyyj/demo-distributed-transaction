@@ -1,4 +1,4 @@
-package com.example.orderservice.common;
+package com.example.orderservice.entity;
 
 public enum OrderStatus {
     PENDING,

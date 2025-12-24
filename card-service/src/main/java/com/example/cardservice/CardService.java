@@ -1,23 +1,46 @@
 package com.example.cardservice;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
+
+import java.util.function.Consumer;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class CardService {
 
+    private final StreamBridge streamBridge;
+
     /**
-     * 카드 승인 요청
-     * 결제 금액이 1,000만원을 초과하면 예외를 발생시켜 트랜잭션 롤백을 유도합니다.
+     * 카드 승인을 위해 필요한 정보와 실패 시 보상을 위해 넘겨줄 정보를 포함
      */
-    public void approve(int amount) {
-        log.info("카드 결제 승인 요청 중: {}원", amount);
+    public record PointDeductedEvent(Long orderId, Long userId, int pointAmount, int cardAmount) {
+    }
 
-        // 외부 카드사 결제 API 호출
-        callExternalCardApi(amount);
+    /**
+     * 성공/실패 통보를 위한 DTO
+     */
+    public record OrderResult(Long orderId, Long userId, int pointAmount) {
+    }
 
-        log.info("카드 승인 완료: {}원", amount);
+    @Bean
+    public Consumer<PointDeductedEvent> pointDeductedCOnsumer() {
+        return event -> {
+            log.info("카드 결제 승인 요청 : {}원", event.cardAmount());
+            OrderResult data = new OrderResult(event.orderId, event.userId, event.pointAmount);
+            try {
+                callExternalCardApi(event.cardAmount());
+                log.info("카드 승인 완료: {}원. 최종 완료 이벤트 발행.", event.cardAmount());
+                streamBridge.send("cardApproved-out-0", data);
+            } catch (Exception e) {
+                log.error("카드 승인 실패: {}. 보상 트랜잭션 트리거.", e.getMessage());
+                streamBridge.send("cardFailed-out-0", data);
+            }
+        };
     }
 
     private void callExternalCardApi(int amount) {

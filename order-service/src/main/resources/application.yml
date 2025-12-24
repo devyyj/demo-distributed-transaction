@@ -18,21 +18,19 @@ spring:
   cloud:
     stream:
       function:
-        definition: pointDeductedConsumer;cardResultConsumer
+        # 실행할 함수 빈 이름 정의
+        definition: orderCompletedConsumer;orderFailedConsumer
       bindings:
-        # 발행: 주문 생성 (포인트 차감 요청)
+        # 출력 바인딩 (주문 생성 이벤트 발행)
         orderCreated-out-0:
-          destination: order-events
-        # 구독: 포인트 차감 완료 알림
-        pointDeductedConsumer-in-0:
-          destination: point-events
+          destination: order-created-topic
+        # 입력 바인딩 (결제 완료 수신)
+        orderCompletedConsumer-in-0:
+          destination: order-completed-topic
           group: order-service-group
-        # 발행: 카드 결제 결과 (내부 전파용)
-        cardResult-out-0:
-          destination: card-events
-        # 구독: 최종 결제 결과 (상태 업데이트용)
-        cardResultConsumer-in-0:
-          destination: card-events
+        # 입력 바인딩 (결제 실패 수신)
+        orderFailedConsumer-in-0:
+          destination: order-failed-topic
           group: order-service-group
   kafka:
     bootstrap-servers: localhost:9092

@@ -1,6 +1,5 @@
 package com.example.orderservice.entity;
 
-import com.example.orderservice.common.OrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
 

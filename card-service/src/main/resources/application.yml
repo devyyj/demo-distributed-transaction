@@ -1,2 +1,18 @@
 server:
   port: 8082
+
+spring:
+  cloud:
+    stream:
+      function:
+        definition: pointDeductedConsumer
+      bindings:
+        pointDeductedConsumer-in-0:
+          destination: point-deducted-topic
+          group: card-service-group
+        cardApproved-out-0:
+          destination: order-completed-topic
+        cardFailed-out-0:
+          destination: order-failed-topic
+  kafka:
+    bootstrap-servers: localhost:9092
