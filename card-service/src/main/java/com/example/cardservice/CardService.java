@@ -28,7 +28,7 @@ public class CardService {
     }
 
     @Bean
-    public Consumer<PointDeductedEvent> pointDeductedCOnsumer() {
+    public Consumer<PointDeductedEvent> pointDeductedConsumer() {
         return event -> {
             log.info("카드 결제 승인 요청 : {}원", event.cardAmount());
             OrderResult data = new OrderResult(event.orderId, event.userId, event.pointAmount);

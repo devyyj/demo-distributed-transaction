@@ -16,10 +16,13 @@ spring:
     show-sql: true
 
   cloud:
+    function:
+      # 실행할 함수 빈 이름 정의
+      definition: orderCompletedConsumer;orderFailedConsumer
     stream:
-      function:
-        # 실행할 함수 빈 이름 정의
-        definition: orderCompletedConsumer;orderFailedConsumer
+      kafka:
+        binder:
+          brokers: localhost:9092
       bindings:
         # 출력 바인딩 (주문 생성 이벤트 발행)
         orderCreated-out-0:
@@ -32,5 +35,5 @@ spring:
         orderFailedConsumer-in-0:
           destination: order-failed-topic
           group: order-service-group
-  kafka:
-    bootstrap-servers: localhost:9092
+#  kafka:
+#    bootstrap-servers: localhost:9092

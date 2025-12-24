@@ -25,7 +25,7 @@ spring:
       bindings:
         orderCreatedConsumer-in-0: # [입력] 주문 생성 이벤트 수신
           destination: order-created-topic
-          group: point-service-group-v2
+          group: point-service-group
         pointDeducted-out-0: # [출력] 포인트 차감 성공 이벤트 발행 (StreamBridge 사용)
           destination: point-deducted-topic
         orderFailed-out-0: # [출력] 포인트 차감 실패 이벤트 발행 (StreamBridge 사용)
