@@ -1,5 +1,10 @@
-package com.example.orderservice;
+package com.example.orderservice.service;
 
+import com.example.orderservice.dto.CardApproveRequest;
+import com.example.orderservice.entity.OrderStatus;
+import com.example.orderservice.dto.PointDeductRequest;
+import com.example.orderservice.entity.Order;
+import com.example.orderservice.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;

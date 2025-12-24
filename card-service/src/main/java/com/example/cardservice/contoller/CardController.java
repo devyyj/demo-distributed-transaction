@@ -1,5 +1,7 @@
-package com.example.cardservice;
+package com.example.cardservice.contoller;
 
+import com.example.cardservice.dto.CardRequest;
+import com.example.cardservice.service.CardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

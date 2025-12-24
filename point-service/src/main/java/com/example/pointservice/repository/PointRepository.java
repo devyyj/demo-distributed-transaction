@@ -1,5 +1,6 @@
-package com.example.pointservice;
+package com.example.pointservice.repository;
 
+import com.example.pointservice.entity.Point;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

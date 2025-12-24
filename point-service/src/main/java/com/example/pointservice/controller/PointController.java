@@ -1,5 +1,7 @@
-package com.example.pointservice;
+package com.example.pointservice.controller;
 
+import com.example.pointservice.dto.PointRequest;
+import com.example.pointservice.service.PointService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
