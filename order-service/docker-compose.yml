@@ -9,7 +9,7 @@ services:
       MARIADB_ROOT_PASSWORD: root
       MARIADB_DATABASE: order_db
     volumes:
-      - ./data/order:/var/lib/mysql
+      - order_db:/var/lib/mysql
     # CDC를 위한 Binary Log 설정 추가
     command:
       - --log-bin=mysql-bin
@@ -19,7 +19,9 @@ services:
     networks:
       - kafka-net
 
+volumes:
+  order_db:
+
 networks:
   kafka-net:
     external: true
-    name: demo-multi_kafka-net

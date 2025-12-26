@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # 포인트 서비스용 데이터베이스
   point-db:
@@ -11,4 +9,13 @@ services:
       MARIADB_ROOT_PASSWORD: root
       MARIADB_DATABASE: point_db
     volumes:
-      - ./data/point:/var/lib/mysql
+      - point_db:/var/lib/mysql
+    networks:
+      - kafka-net
+
+volumes:
+  point_db:
+
+networks:
+  kafka-net:
+    external: true

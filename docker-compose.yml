@@ -1,15 +1,18 @@
 services:
   # 카프카 브로커 (Apache 공식 이미지 - KRaft 모드)
   kafka:
-    image: apache/kafka:latest
+    image: confluentinc/cp-kafka:latest
     container_name: kafka-server
     ports:
       - "9092:9092"
     environment:
-      # KRaft 및 노드 설정
+      # KRaft 모드 활성화 및 노드 설정
       - KAFKA_NODE_ID=1
       - KAFKA_PROCESS_ROLES=broker,controller
       - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+
+      # Confluent KRaft 필수 설정 (임의의 고유 ID 지정)
+      - CLUSTER_ID=MkU3OEVBNTcwNTJENDM2Qk
 
       # 리스너 및 프로토콜 맵
       - KAFKA_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,INTERNAL://:9094
@@ -20,16 +23,14 @@ services:
       - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
       - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
 
-      # 클러스터 초기화 (KRaft 필수)
+      # 복제 및 성능 설정 (싱글 노드 최적화)
       - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
       - KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0
       - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
       - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
-
-      # 브로커 차원의 토픽 자동 생성 방지 설정
-      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=false
     volumes:
-      - ./data/kafka:/var/lib/kafka/data
+      # [필수] 데이터 유실 방지를 위한 이름이 있는 볼륨 설정
+      - kafka_data:/var/lib/kafka/data
     networks:
       - kafka-net
 
@@ -43,6 +44,9 @@ services:
       - KAFKA_CLUSTERS_0_NAME=local-kraft-cluster
       - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9094
       - DYNAMIC_CONFIG_ENABLED=true
+      # Kafka Connect 연결 설정 추가
+      - KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME=kafka-connect
+      - KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS=http://kafka-connect:8083
     depends_on:
       - kafka
     networks:
@@ -64,12 +68,19 @@ services:
       - VALUE_CONVERTER=org.apache.kafka.connect.json.JsonConverter
       - CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE=false
       - CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE=false
+    volumes:
+      # 커넥트 역시 상태 정보 저장을 위해 볼륨을 잡아주는 것이 실무 관례입니다.
+      - connect_data:/kafka/data
     depends_on:
       - kafka
       - kafka-ui
     networks:
       - kafka-net
 
+volumes:
+  kafka_data:
+  connect_data:
+
 networks:
   kafka-net:
-    driver: bridge
+    external: true
