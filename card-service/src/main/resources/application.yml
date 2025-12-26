@@ -3,16 +3,19 @@ server:
 
 spring:
   cloud:
+    function:
+      # 구독: point.completed
+      definition: pointCompletedConsumer
     stream:
-      function:
-        definition: pointDeductedConsumer
+      kafka:
+        binder:
+          brokers: localhost:9092
       bindings:
-        pointDeductedConsumer-in-0:
-          destination: point-deducted-topic
+        pointCompletedConsumer-in-0:
+          destination: point.completed
           group: card-service-group
-        cardApproved-out-0:
-          destination: order-completed-topic
+        # 발행: card.completed, card.failed
+        cardCompleted-out-0:
+          destination: card.completed
         cardFailed-out-0:
-          destination: order-failed-topic
-  kafka:
-    bootstrap-servers: localhost:9092
+          destination: card.failed

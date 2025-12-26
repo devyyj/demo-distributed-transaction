@@ -3,6 +3,6 @@ Content-Type: application/json
 
 {
   "userId": 1,
-  "totalAmount": 1000,
-  "pointAmount": 500
+  "totalAmount": 2000000,
+  "pointAmount": 10000
 }

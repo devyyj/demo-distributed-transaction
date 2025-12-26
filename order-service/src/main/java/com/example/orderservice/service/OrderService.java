@@ -9,7 +9,6 @@ import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.function.Consumer;
 
@@ -18,26 +17,20 @@ import java.util.function.Consumer;
 @RequiredArgsConstructor
 public class OrderService {
     private final StreamBridge streamBridge;
-    private final RestTemplate restTemplate = new RestTemplate();
     private final OrderRepository orderRepository;
 
-    /**
-     * 포인트/카드 서비스로 전달할 생성 이벤트 DTO
-     * 주문 서비스는 모든 금액 정보를 알고 있으므로 전체를 포함함
-     */
-    public record OrderCreatedEvent(Long orderId, Long userId, int pointAmount, int cardAmount) {
-    }
+    // DTO 정의 (내부 record)
+    public record OrderCreatedEvent(Long orderId, Long userId, int pointAmount, int cardAmount) {}
+    public record CardCompletedEvent(Long orderId) {}
+    public record CardFailedEvent(Long orderId, Long userId, int pointAmount, String reason) {}
+    public record PointFailedEvent(Long orderId, String reason) {}
 
     /**
-     * 외부 서비스로부터 결과를 받을 때 사용하는 DTO
-     * 상태 업데이트를 위해 orderId만 있으면 됨
+     * 주문 생성 및 Saga 시작
+     * 발행 토픽: order.created
      */
-    public record OrderResultEvent(Long orderId) {
-    }
-
     @Transactional
     public void processOrder(Long userId, int totalAmount, int pointAmount) {
-        // 주문 생성
         Order order = Order.builder()
                 .userId(userId)
                 .totalAmount(totalAmount)
@@ -45,37 +38,53 @@ public class OrderService {
                 .build();
         orderRepository.save(order);
 
-        log.info("결제 주문 생성 완료 (PENDING) : {}", order.getId());
+        log.info("Saga 시작 - 주문 생성(PENDING): {}", order.getId());
 
-        // 포인트 이벤트 발행
         OrderCreatedEvent event = new OrderCreatedEvent(order.getId(), userId, pointAmount, order.getCardAmount());
         streamBridge.send("orderCreated-out-0", event);
-
     }
 
-    // 최종 성공 이벤트 소비
+    /**
+     * 최종 성공 수신 (카드 승인 완료)
+     * 구독 토픽: card.completed
+     */
     @Bean
-    public Consumer<OrderResultEvent> orderCompletedConsumer() {
+    public Consumer<CardCompletedEvent> cardCompletedConsumer() {
         return event -> {
-            log.info("최종 결제 성공 이벤트 수신: 주문 ID {}", event.orderId());
+            log.info("최종 결제 성공 수신: 주문 ID {}", event.orderId());
             updateStatus(event.orderId(), OrderStatus.COMPLETED);
         };
     }
 
-
-    // 최종 실패 이벤트 소비
+    /**
+     * 카드 결제 실패 수신 (주문 실패 처리)
+     * 구독 토픽: card.failed
+     */
     @Bean
-    public Consumer<OrderResultEvent> orderFailedConsumer() {
+    public Consumer<CardFailedEvent> cardFailedConsumer() {
         return event -> {
-            log.warn("최종 결제 실패 이벤트 수신: 주문 ID {}", event.orderId());
+            log.warn("카드 결제 실패 수신 - 주문 ID {}: 사유 {}", event.orderId(), event.reason());
             updateStatus(event.orderId(), OrderStatus.FAILED);
         };
     }
 
-    private void updateStatus(Long orderId, OrderStatus status) {
+    /**
+     * 포인트 차감 실패 수신 (주문 실패 처리)
+     * 구독 토픽: point.failed
+     */
+    @Bean
+    public Consumer<PointFailedEvent> pointFailedConsumer() {
+        return event -> {
+            log.warn("포인트 차감 실패 수신 - 주문 ID {}: 사유 {}", event.orderId(), event.reason());
+            updateStatus(event.orderId(), OrderStatus.FAILED);
+        };
+    }
+
+    protected void updateStatus(Long orderId, OrderStatus status) {
         orderRepository.findById(orderId).ifPresent(order -> {
             order.setStatus(status);
             orderRepository.save(order);
+            log.info("주문 상태 변경 완료: {}", status);
         });
     }
 }

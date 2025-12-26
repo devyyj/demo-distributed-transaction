@@ -17,23 +17,25 @@ spring:
 
   cloud:
     function:
-      # 실행할 함수 빈 이름 정의
-      definition: orderCompletedConsumer;orderFailedConsumer
+      # 이미지의 '구독하는 토픽'에 맞춰 3개의 컨슈머 정의
+      definition: cardCompletedConsumer;cardFailedConsumer;pointFailedConsumer
     stream:
       kafka:
         binder:
           brokers: localhost:9092
       bindings:
-        # 출력 바인딩 (주문 생성 이벤트 발행)
+        # 발행: order.created
         orderCreated-out-0:
-          destination: order-created-topic
-        # 입력 바인딩 (결제 완료 수신)
-        orderCompletedConsumer-in-0:
-          destination: order-completed-topic
+          destination: order.created
+        # 구독: card.completed
+        cardCompletedConsumer-in-0:
+          destination: card.completed
           group: order-service-group
-        # 입력 바인딩 (결제 실패 수신)
-        orderFailedConsumer-in-0:
-          destination: order-failed-topic
+        # 구독: card.failed
+        cardFailedConsumer-in-0:
+          destination: card.failed
           group: order-service-group
-#  kafka:
-#    bootstrap-servers: localhost:9092
+        # 구독: point.failed
+        pointFailedConsumer-in-0:
+          destination: point.failed
+          group: order-service-group
