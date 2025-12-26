@@ -1,5 +1,7 @@
-package com.example.pointservice;
+package com.example.pointservice.service;
 
+import com.example.pointservice.entity.Point;
+import com.example.pointservice.repository.PointRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
