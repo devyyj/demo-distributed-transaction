@@ -9,8 +9,7 @@ import java.util.function.Consumer;
 
 /**
  * 포인트 이벤트 컨슈머
- * - 외부 메시지(Kafka) 수신 및 서비스 로직 호출을 담당합니다.
- * - PointService와 분리되어 있으므로 프록시를 통한 @Transactional이 정상 작동합니다.
+ * 중첩된 JSON 구조(payload, type)에 맞춰 DTO를 정의하고 로직을 수행합니다.
  */
 @Slf4j
 @Configuration
@@ -19,10 +18,14 @@ public class PointConsumer {
 
     private final PointService pointService;
 
-    public record OrderEvent(String type, Long orderId, Long userId, int pointAmount, int cardAmount) {
+    // 루트 레벨의 type과 payload 객체를 매핑하기 위한 구조
+    public record OrderEvent(String type, OrderPayload payload) {
+        // 실제 비즈니스 데이터가 담긴 payload 내부 객체
+        public record OrderPayload(Long orderId, Long userId, int pointAmount, int cardAmount) {}
     }
 
-    public record CardEvent(String type, Long orderId, Long userId, int pointAmount, String reason) {
+    public record CardEvent(String type, CardPayload payload) {
+        public record CardPayload(Long orderId, Long userId, int pointAmount, String reason) {}
     }
 
     /**
@@ -31,9 +34,12 @@ public class PointConsumer {
     @Bean
     public Consumer<OrderEvent> orderEventsConsumer() {
         return event -> {
+            // 루트 레벨의 type 필드로 분기 처리
             if ("OrderCreated".equals(event.type())) {
-                log.info("이벤트 수신: 주문 생성 (OrderId: {})", event.orderId());
-                pointService.deduct(event.orderId(), event.userId(), event.pointAmount(), event.cardAmount());
+                OrderEvent.OrderPayload data = event.payload();
+                log.info("이벤트 수신: 주문 생성 (OrderId: {})", data.orderId());
+                // 내부 payload 객체의 데이터를 서비스 로직에 전달
+                pointService.deduct(data.orderId(), data.userId(), data.pointAmount(), data.cardAmount());
             }
         };
     }
@@ -45,8 +51,9 @@ public class PointConsumer {
     public Consumer<CardEvent> cardEventsConsumer() {
         return event -> {
             if ("CardFailed".equals(event.type())) {
-                log.info("이벤트 수신: 카드 결제 실패 (주문 ID: {}), 보상 트랜잭션 실행", event.orderId());
-                pointService.restore(event.userId(), event.pointAmount());
+                CardEvent.CardPayload data = event.payload();
+                log.info("이벤트 수신: 카드 결제 실패 (주문 ID: {}), 보상 트랜잭션 실행", data.orderId());
+                pointService.restore(data.userId(), data.pointAmount());
             }
         };
     }

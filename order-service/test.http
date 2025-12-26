@@ -4,5 +4,5 @@ Content-Type: application/json
 {
   "userId": 1,
   "totalAmount": 1000000,
-  "pointAmount": 10000
+  "pointAmount": 500000
 }
