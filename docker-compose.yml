@@ -1,0 +1,48 @@
+services:
+  # 카프카 브로커 (Apache 공식 이미지 - KRaft 모드)
+  kafka:
+    image: apache/kafka:latest
+    container_name: kafka-server
+    ports:
+      - "9092:9092"
+    environment:
+      # KRaft 및 노드 설정
+      - KAFKA_NODE_ID=1
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+
+      # 리스너 및 프로토콜 맵
+      - KAFKA_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,INTERNAL://:9094
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092,INTERNAL://kafka:9094
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,INTERNAL:PLAINTEXT
+
+      # 컨트롤러 및 인터-브로커 통신 설정
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
+
+      # 클러스터 초기화 (KRaft 필수)
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
+    networks:
+      - kafka-net
+
+  # 카프카 대시보드 (Kafka-UI)
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-dashboard
+    ports:
+      - "8083:8080"
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local-kraft-cluster
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9094
+      - DYNAMIC_CONFIG_ENABLED=true
+    depends_on:
+      - kafka
+    networks:
+      - kafka-net
+
+networks:
+  kafka-net:
+    driver: bridge

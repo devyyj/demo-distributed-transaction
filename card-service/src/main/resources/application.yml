@@ -1,2 +1,21 @@
 server:
   port: 8082
+
+spring:
+  cloud:
+    function:
+      # 구독: point.completed
+      definition: pointCompletedConsumer
+    stream:
+      kafka:
+        binder:
+          brokers: localhost:9092
+      bindings:
+        pointCompletedConsumer-in-0:
+          destination: point.completed
+          group: card-service-group
+        # 발행: card.completed, card.failed
+        cardCompleted-out-0:
+          destination: card.completed
+        cardFailed-out-0:
+          destination: card.failed

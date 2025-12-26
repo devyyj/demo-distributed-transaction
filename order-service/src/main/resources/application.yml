@@ -14,3 +14,28 @@ spring:
       # 엔티티 기반으로 테이블 자동 생성 및 수정
       ddl-auto: update
     show-sql: true
+
+  cloud:
+    function:
+      # 이미지의 '구독하는 토픽'에 맞춰 3개의 컨슈머 정의
+      definition: cardCompletedConsumer;cardFailedConsumer;pointFailedConsumer
+    stream:
+      kafka:
+        binder:
+          brokers: localhost:9092
+      bindings:
+        # 발행: order.created
+        orderCreated-out-0:
+          destination: order.created
+        # 구독: card.completed
+        cardCompletedConsumer-in-0:
+          destination: card.completed
+          group: order-service-group
+        # 구독: card.failed
+        cardFailedConsumer-in-0:
+          destination: card.failed
+          group: order-service-group
+        # 구독: point.failed
+        pointFailedConsumer-in-0:
+          destination: point.failed
+          group: order-service-group

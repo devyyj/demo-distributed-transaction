@@ -1,38 +1,53 @@
 package com.example.cardservice.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
+
+import java.util.function.Consumer;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class CardService {
 
+    private final StreamBridge streamBridge;
+
+    // 개선된 DTO 정의
+    public record PointCompletedEvent(Long orderId, Long userId, int pointAmount, int cardAmount) {}
+    public record CardCompletedEvent(Long orderId) {}
+    public record CardFailedEvent(Long orderId, Long userId, int pointAmount, String reason) {}
+
     /**
-     * 카드 승인 요청
-     * 결제 금액이 1,000만원을 초과하면 예외를 발생시켜 트랜잭션 롤백을 유도합니다.
+     * [구독] 포인트 차감 성공 후 카드 결제 승인
+     * 토픽: point.completed
      */
-    public void approve(int amount) {
-        log.info("카드 결제 승인 요청 중: {}원", amount);
-
-        // 외부 카드사 결제 API 호출이라고 가정
-        callExternalCardApi(amount);
-
-        log.info("카드 승인 완료: {}원", amount);
+    @Bean
+    public Consumer<PointCompletedEvent> pointCompletedConsumer() {
+        return event -> {
+            log.info("카드 승인 요청 - 금액: {}원", event.cardAmount());
+            try {
+                callCardApi(event.cardAmount());
+                // 성공 시 card.completed 발행
+                log.info("카드 승인 성공 - ID: {}", event.orderId());
+                streamBridge.send("cardCompleted-out-0", new CardCompletedEvent(event.orderId()));
+            } catch (Exception e) {
+                log.error("카드 승인 실패 - 사유: {}", e.getMessage());
+                // 실패 시 card.failed 발행 (보상 트랜잭션 트리거)
+                CardFailedEvent failureEvent = new CardFailedEvent(
+                        event.orderId(), event.userId(), event.pointAmount(), e.getMessage()
+                );
+                streamBridge.send("cardFailed-out-0", failureEvent);
+            }
+        };
     }
 
-    private void callExternalCardApi(int amount) {
-        try {
-            // 결제 한도 검증 (100만원 초과 시 예외 발생)
-            if (amount > 1_000_000) {
-                log.warn("카드 결제 승인 거절: 한도 초과 (요청 금액: {}원)", amount);
-                // RuntimeException은 스프링의 @Transactional을 만나면 자동으로 롤백을 수행합니다.
-                throw new RuntimeException("카드사 결제 한도(100만원)를 초과했습니다.");
-            }
-            // 실제 외부 API 호출과 유사한 환경을 위해 1초 대기
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            log.error("네트워크 지연 시뮬레이션 중 오류 발생", e);
-            Thread.currentThread().interrupt();
+    private void callCardApi(int amount) {
+        if (amount > 1_000_000) {
+            throw new RuntimeException("카드사 한도 초과");
         }
+        try { Thread.sleep(500); } catch (InterruptedException ignored) {}
     }
 }
