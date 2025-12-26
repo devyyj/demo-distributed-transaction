@@ -28,6 +28,8 @@ services:
 
       # 브로커 차원의 토픽 자동 생성 방지 설정
       - KAFKA_AUTO_CREATE_TOPICS_ENABLE=false
+    volumes:
+      - ./data/kafka:/var/lib/kafka/data
     networks:
       - kafka-net
 
