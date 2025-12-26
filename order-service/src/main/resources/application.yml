@@ -17,25 +17,18 @@ spring:
 
   cloud:
     function:
-      # 이미지의 '구독하는 토픽'에 맞춰 3개의 컨슈머 정의
-      definition: cardCompletedConsumer;cardFailedConsumer;pointFailedConsumer
+      # 도메인 단위로 컨슈머 통합
+      definition: pointEventsConsumer;cardEventsConsumer
     stream:
       kafka:
         binder:
           brokers: localhost:9092
       bindings:
-        # 발행: order.created, 더이상 사용하지 않음
-#        orderCreated-out-0:
-#          destination: order.created
-        # 구독: card.completed
-        cardCompletedConsumer-in-0:
-          destination: card.completed
+        # 포인트 도메인의 모든 이벤트 구독
+        pointEventsConsumer-in-0:
+          destination: point.events
           group: order-service-group
-        # 구독: card.failed
-        cardFailedConsumer-in-0:
-          destination: card.failed
-          group: order-service-group
-        # 구독: point.failed
-        pointFailedConsumer-in-0:
-          destination: point.failed
+        # 카드 도메인의 모든 이벤트 구독
+        cardEventsConsumer-in-0:
+          destination: card.events
           group: order-service-group

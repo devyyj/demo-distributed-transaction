@@ -49,7 +49,7 @@ public class OrderService {
             String payload = objectMapper.writeValueAsString(event);
 
             OutboxEvent outboxEvent = OutboxEvent.builder()
-                    .aggregateType("Order")
+                    .aggregateType("order")
                     .aggregateId(order.getId())
                     .eventType("OrderCreated")
                     .payload(payload)

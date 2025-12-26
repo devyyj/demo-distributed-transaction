@@ -63,7 +63,7 @@ public class PointService {
             String payload = objectMapper.writeValueAsString(payloadObj);
 
             OutboxEvent event = OutboxEvent.builder()
-                    .aggregateType("Point")
+                    .aggregateType("point")
                     .aggregateId(aggregateId)
                     .eventType(eventType)
                     .payload(payload)

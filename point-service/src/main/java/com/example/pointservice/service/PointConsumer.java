@@ -2,7 +2,6 @@ package com.example.pointservice.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -19,44 +18,36 @@ import java.util.function.Consumer;
 public class PointConsumer {
 
     private final PointService pointService;
-    private final StreamBridge streamBridge;
 
-    // 개선된 DTO 정의
-    public record OrderCreatedEvent(Long orderId, Long userId, int pointAmount, int cardAmount) {
+    public record OrderEvent(String type, Long orderId, Long userId, int pointAmount, int cardAmount) {
     }
 
-    public record PointCompletedEvent(Long orderId, Long userId, int pointAmount, int cardAmount) {
-    }
-
-    public record PointFailedEvent(Long orderId, String reason) {
-    }
-
-    public record CardFailedEvent(Long orderId, Long userId, int pointAmount, String reason) {
+    public record CardEvent(String type, Long orderId, Long userId, int pointAmount, String reason) {
     }
 
     /**
-     * 주문 생성 이벤트 수신
-     * 토픽: order.created
+     * 주문 도메인 이벤트 수신
      */
     @Bean
-    public Consumer<OrderCreatedEvent> orderCreatedConsumer() {
+    public Consumer<OrderEvent> orderEventsConsumer() {
         return event -> {
-            log.info("이벤트 수신: 주문 생성 (OrderId: {})", event.orderId());
-            // 서로 다른 클래스(빈) 호출이므로 트랜잭션 프록시가 정상 작동함
-            pointService.deduct(event.orderId(), event.userId(), event.pointAmount(), event.cardAmount());
-
+            if ("OrderCreated".equals(event.type())) {
+                log.info("이벤트 수신: 주문 생성 (OrderId: {})", event.orderId());
+                pointService.deduct(event.orderId(), event.userId(), event.pointAmount(), event.cardAmount());
+            }
         };
     }
 
     /**
-     * 카드 결제 실패 이벤트 수신 (보상 트랜잭션)
-     * 토픽: card.failed
+     * 카드 도메인 이벤트 수신 (보상 트랜잭션)
      */
     @Bean
-    public Consumer<CardFailedEvent> cardFailedConsumer() {
+    public Consumer<CardEvent> cardEventsConsumer() {
         return event -> {
-            log.info("이벤트 수신: 카드 결제 실패 (주문 ID: {}), 보상 트랜잭션 실행", event.orderId());
-            pointService.restore(event.userId(), event.pointAmount());
+            if ("CardFailed".equals(event.type())) {
+                log.info("이벤트 수신: 카드 결제 실패 (주문 ID: {}), 보상 트랜잭션 실행", event.orderId());
+                pointService.restore(event.userId(), event.pointAmount());
+            }
         };
     }
 }

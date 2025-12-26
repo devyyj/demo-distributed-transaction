@@ -15,31 +15,24 @@ public class CardService {
 
     private final StreamBridge streamBridge;
 
-    // 개선된 DTO 정의
-    public record PointCompletedEvent(Long orderId, Long userId, int pointAmount, int cardAmount) {}
-    public record CardCompletedEvent(Long orderId) {}
-    public record CardFailedEvent(Long orderId, Long userId, int pointAmount, String reason) {}
+    // type 필드를 포함한 이벤트 DTO
+    public record PointEvent(String type, Long orderId, Long userId, int pointAmount, int cardAmount) {}
+    public record CardEvent(String type, Long orderId, Long userId, int pointAmount, String reason) {}
 
-    /**
-     * [구독] 포인트 차감 성공 후 카드 결제 승인
-     * 토픽: point.completed
-     */
     @Bean
-    public Consumer<PointCompletedEvent> pointCompletedConsumer() {
+    public Consumer<PointEvent> pointEventsConsumer() {
         return event -> {
+            if (!"PointCompleted".equals(event.type())) return;
+
             log.info("카드 승인 요청 - 금액: {}원", event.cardAmount());
             try {
                 callCardApi(event.cardAmount());
-                // 성공 시 card.completed 발행
-                log.info("카드 승인 성공 - ID: {}", event.orderId());
-                streamBridge.send("cardCompleted-out-0", new CardCompletedEvent(event.orderId()));
+                // 성공 이벤트 발행
+                streamBridge.send("cardEvents-out-0", new CardEvent("CardCompleted", event.orderId(), null, 0, null));
             } catch (Exception e) {
                 log.error("카드 승인 실패 - 사유: {}", e.getMessage());
-                // 실패 시 card.failed 발행 (보상 트랜잭션 트리거)
-                CardFailedEvent failureEvent = new CardFailedEvent(
-                        event.orderId(), event.userId(), event.pointAmount(), e.getMessage()
-                );
-                streamBridge.send("cardFailed-out-0", failureEvent);
+                // 실패 이벤트 발행
+                streamBridge.send("cardEvents-out-0", new CardEvent("CardFailed", event.orderId(), event.userId(), event.pointAmount(), e.getMessage()));
             }
         };
     }
