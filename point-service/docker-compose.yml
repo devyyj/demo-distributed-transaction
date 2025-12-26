@@ -10,6 +10,12 @@ services:
       MARIADB_DATABASE: point_db
     volumes:
       - point_db:/var/lib/mysql
+    # CDC를 위한 Binary Log 설정 추가
+    command:
+      - --log-bin=mysql-bin
+      - --binlog-format=ROW
+      - --server-id=2  # order-db와 겹치지 않게 설정
+      - --binlog-do-db=point_db
     networks:
       - kafka-net
 

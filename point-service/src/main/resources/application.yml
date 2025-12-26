@@ -30,8 +30,3 @@ spring:
         cardFailedConsumer-in-0:
           destination: card.failed
           group: point-service-group
-        # 발행 토픽 설정
-        pointCompleted-out-0:
-          destination: point.completed
-        pointFailed-out-0:
-          destination: point.failed

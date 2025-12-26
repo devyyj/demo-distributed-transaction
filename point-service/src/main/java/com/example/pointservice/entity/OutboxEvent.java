@@ -1,4 +1,4 @@
-package com.example.orderservice.entity;
+package com.example.pointservice.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
