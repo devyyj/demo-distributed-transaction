@@ -1,0 +1,20 @@
+POST http://localhost:8080/api/orders
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "totalAmount": 1000000,
+  "pointAmount": 10000,
+  "requestId": "{{$random.uuid}}"
+}
+
+###
+POST http://localhost:8080/api/orders
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "totalAmount": 1000000,
+  "pointAmount": 10000,
+  "requestId": "5a470f7c-0363-4c32-9fa6-924a54f13138"
+}

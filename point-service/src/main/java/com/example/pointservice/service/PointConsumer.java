@@ -53,7 +53,7 @@ public class PointConsumer {
             if ("CardFailed".equals(event.type())) {
                 CardEvent.CardPayload data = event.payload();
                 log.info("이벤트 수신: 카드 결제 실패 (주문 ID: {}), 보상 트랜잭션 실행", data.orderId());
-                pointService.restore(data.userId(), data.pointAmount());
+                pointService.restore(data.userId(), data.pointAmount(), data.orderId());
             }
         };
     }
