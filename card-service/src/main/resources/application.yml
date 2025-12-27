@@ -5,17 +5,15 @@ spring:
   cloud:
     function:
       # 구독: point.completed
-      definition: pointCompletedConsumer
+      definition: pointEventsConsumer
     stream:
       kafka:
         binder:
           brokers: localhost:9092
       bindings:
-        pointCompletedConsumer-in-0:
-          destination: point.completed
+        pointEventsConsumer-in-0:
+          destination: point.events
           group: card-service-group
-        # 발행: card.completed, card.failed
-        cardCompleted-out-0:
-          destination: card.completed
-        cardFailed-out-0:
-          destination: card.failed
+        # 통합된 카드 도메인 토픽으로 발행
+        cardEvents-out-0:
+          destination: card.events

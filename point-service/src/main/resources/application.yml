@@ -16,22 +16,15 @@ spring:
 
   cloud:
     function:
-      # 구독: order.created, card.failed
-      definition: orderCreatedConsumer;cardFailedConsumer
+      definition: orderEventsConsumer;cardEventsConsumer
     stream:
       kafka:
         binder:
           brokers: localhost:9092
       bindings:
-        # 구독 토픽 설정
-        orderCreatedConsumer-in-0:
-          destination: order.created
+        orderEventsConsumer-in-0:
+          destination: order.events
           group: point-service-group
-        cardFailedConsumer-in-0:
-          destination: card.failed
+        cardEventsConsumer-in-0:
+          destination: card.events
           group: point-service-group
-        # 발행 토픽 설정
-        pointCompleted-out-0:
-          destination: point.completed
-        pointFailed-out-0:
-          destination: point.failed

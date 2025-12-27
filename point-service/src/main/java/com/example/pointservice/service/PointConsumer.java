@@ -2,7 +2,6 @@ package com.example.pointservice.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -10,8 +9,7 @@ import java.util.function.Consumer;
 
 /**
  * 포인트 이벤트 컨슈머
- * - 외부 메시지(Kafka) 수신 및 서비스 로직 호출을 담당합니다.
- * - PointService와 분리되어 있으므로 프록시를 통한 @Transactional이 정상 작동합니다.
+ * 중첩된 JSON 구조(payload, type)에 맞춰 DTO를 정의하고 로직을 수행합니다.
  */
 @Slf4j
 @Configuration
@@ -19,48 +17,44 @@ import java.util.function.Consumer;
 public class PointConsumer {
 
     private final PointService pointService;
-    private final StreamBridge streamBridge;
 
-    // 개선된 DTO 정의
-    public record OrderCreatedEvent(Long orderId, Long userId, int pointAmount, int cardAmount) {}
-    public record PointCompletedEvent(Long orderId, Long userId, int pointAmount, int cardAmount) {}
-    public record PointFailedEvent(Long orderId, String reason) {}
-    public record CardFailedEvent(Long orderId, Long userId, int pointAmount, String reason) {}
+    // 루트 레벨의 type과 payload 객체를 매핑하기 위한 구조
+    public record OrderEvent(String type, OrderPayload payload) {
+        // 실제 비즈니스 데이터가 담긴 payload 내부 객체
+        public record OrderPayload(Long orderId, Long userId, int pointAmount, int cardAmount) {}
+    }
+
+    public record CardEvent(String type, CardPayload payload) {
+        public record CardPayload(Long orderId, Long userId, int pointAmount, String reason) {}
+    }
 
     /**
-     * 주문 생성 이벤트 수신
-     * 토픽: order.created
+     * 주문 도메인 이벤트 수신
      */
     @Bean
-    public Consumer<OrderCreatedEvent> orderCreatedConsumer() {
+    public Consumer<OrderEvent> orderEventsConsumer() {
         return event -> {
-            log.info("이벤트 수신: 주문 생성 (OrderId: {})", event.orderId());
-            try {
-                // 서로 다른 클래스(빈) 호출이므로 트랜잭션 프록시가 정상 작동함
-                pointService.deduct(event.userId(), event.pointAmount());
-
-                // 성공 시 다음 단계 이벤트 발행
-                PointCompletedEvent successEvent = new PointCompletedEvent(
-                        event.orderId(), event.userId(), event.pointAmount(), event.cardAmount()
-                );
-                streamBridge.send("pointCompleted-out-0", successEvent);
-            } catch (Exception e) {
-                log.error("포인트 차감 실패: {}", e.getMessage());
-                // 실패 시 주문 서비스에 알림
-                streamBridge.send("pointFailed-out-0", new PointFailedEvent(event.orderId(), e.getMessage()));
+            // 루트 레벨의 type 필드로 분기 처리
+            if ("OrderCreated".equals(event.type())) {
+                OrderEvent.OrderPayload data = event.payload();
+                log.info("이벤트 수신: 주문 생성 (OrderId: {})", data.orderId());
+                // 내부 payload 객체의 데이터를 서비스 로직에 전달
+                pointService.deduct(data.orderId(), data.userId(), data.pointAmount(), data.cardAmount());
             }
         };
     }
 
     /**
-     * 카드 결제 실패 이벤트 수신 (보상 트랜잭션)
-     * 토픽: card.failed
+     * 카드 도메인 이벤트 수신 (보상 트랜잭션)
      */
     @Bean
-    public Consumer<CardFailedEvent> cardFailedConsumer() {
+    public Consumer<CardEvent> cardEventsConsumer() {
         return event -> {
-            log.info("이벤트 수신: 카드 결제 실패 (주문 ID: {}), 보상 트랜잭션 실행", event.orderId());
-            pointService.restore(event.userId(), event.pointAmount());
+            if ("CardFailed".equals(event.type())) {
+                CardEvent.CardPayload data = event.payload();
+                log.info("이벤트 수신: 카드 결제 실패 (주문 ID: {}), 보상 트랜잭션 실행", data.orderId());
+                pointService.restore(data.userId(), data.pointAmount());
+            }
         };
     }
 }

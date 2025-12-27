@@ -1,0 +1,32 @@
+package com.example.pointservice.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Getter
+@Table(name = "outbox_events")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
+public class OutboxEvent {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String aggregateType;
+
+    private Long aggregateId;
+
+    private String eventType;
+
+    private String payload;
+
+    @CreatedDate
+    @Column(updatable = false, nullable = false, columnDefinition = "DATETIME")
+    private LocalDateTime createdAt;
+}

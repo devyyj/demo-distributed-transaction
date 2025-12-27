@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # 포인트 서비스용 데이터베이스
   point-db:
@@ -11,4 +9,19 @@ services:
       MARIADB_ROOT_PASSWORD: root
       MARIADB_DATABASE: point_db
     volumes:
-      - ./data/point:/var/lib/mysql
+      - point_db:/var/lib/mysql
+    # CDC를 위한 Binary Log 설정 추가
+    command:
+      - --log-bin=mysql-bin
+      - --binlog-format=ROW
+      - --server-id=2  # order-db와 겹치지 않게 설정
+      - --binlog-do-db=point_db
+    networks:
+      - kafka-net
+
+volumes:
+  point_db:
+
+networks:
+  kafka-net:
+    external: true
