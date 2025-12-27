@@ -1,8 +1,0 @@
-POST http://localhost:8080/api/orders
-Content-Type: application/json
-
-{
-  "userId": 1,
-  "totalAmount": 1000000,
-  "pointAmount": 500000
-}
