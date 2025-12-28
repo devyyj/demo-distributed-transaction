@@ -57,6 +57,8 @@ public class PointService {
             PointFailedEvent event = new PointFailedEvent(orderId, e.getMessage());
             saveOutBox(orderId, "PointFailed", event);
         }
+
+//        throw new RuntimeException("재시도 로직 확인을 위한 의도적인 예외 발생");
     }
 
     private void saveOutBox(Long aggregateId, String eventType, Object payloadObj) {

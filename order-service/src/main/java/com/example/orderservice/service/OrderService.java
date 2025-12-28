@@ -91,6 +91,7 @@ public class OrderService {
             orderRepository.save(order);
             processedEventRepository.save(ProcessedEvent.of(idempotencyKey));
             log.info("주문 상태 변경 완료: {} (ID: {})", status, orderId);
+//            throw new RuntimeException("재시도 발생하도록 의도적인 예외 발생");
         });
     }
 }

@@ -21,10 +21,28 @@ spring:
       kafka:
         binder:
           brokers: localhost:9092
+        bindings:
+          # Kafka 전용 컨슈머 설정: 재시도 실패 시 메시지를 DLQ 토픽으로 이동
+          orderEventsConsumer-in-0:
+            consumer:
+              enable-dlq: true # DLQ 활성화
+              dlq-name: order.events.point-service.dlq # DLQ 토픽명 명시
+          cardEventsConsumer-in-0:
+            consumer:
+              enable-dlq: true
+              dlq-name: card.events.point-service.dlq
       bindings:
         orderEventsConsumer-in-0:
           destination: order.events
           group: point-service-group
+          consumer:
+            max-attempts: 3 # 최대 시도 횟수 (기본 1회 + 재시도 2회)
+            back-off-initial-interval: 1000 # 첫 재시도 대기 시간 (1초)
+            back-off-multiplier: 2.0 # 재시도 간격 배수 (1초 -> 2초 -> 4초)
         cardEventsConsumer-in-0:
           destination: card.events
           group: point-service-group
+          consumer:
+            max-attempts: 3 # 최대 시도 횟수 (기본 1회 + 재시도 2회)
+            back-off-initial-interval: 1000 # 첫 재시도 대기 시간 (1초)
+            back-off-multiplier: 2.0 # 재시도 간격 배수 (1초 -> 2초 -> 4초)

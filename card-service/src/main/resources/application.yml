@@ -17,3 +17,26 @@ spring:
         # 통합된 카드 도메인 토픽으로 발행
         cardEvents-out-0:
           destination: card.events
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        failure-rate-threshold: 50 # 실패율 임계치: 50% 이상 실패 시 서킷 오픈
+        wait-duration-in-open-state:
+          seconds: 10 # 서킷이 Open 상태에서 Half-open으로 전환되기 전 대기 시간 (10초)
+        sliding-window-size: 10 # 서킷이 열리기 위해 참조할 슬라이딩 윈도우 크기 (최근 10개 호출)
+        minimum-number-of-calls: 5 # 호출 결과 기록에 필요한 최소 호출 수
+        slow-call-duration-threshold:
+          seconds: 3 # 느린 호출 임계치: 3초 이상 걸리면 실패로 간주
+    instances:
+      cardApprovalbreaker:
+        base-config: default
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,circuitbreakers
+  endpoint:
+    health:
+      show-details: always

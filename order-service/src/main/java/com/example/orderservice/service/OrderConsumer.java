@@ -16,7 +16,8 @@ public class OrderConsumer {
 
     // 중첩된 공통 이벤트 구조
     public record DomainEvent(String type, EventPayload payload) {
-        public record EventPayload(Long orderId, String reason) {}
+        public record EventPayload(Long orderId, String reason) {
+        }
     }
 
     /**
@@ -26,12 +27,17 @@ public class OrderConsumer {
     public Consumer<DomainEvent> cardEventsConsumer() {
         return event -> {
             DomainEvent.EventPayload data = event.payload();
-            if("CardCompleted".equals(event.type())) {
-                log.info("최종 결제 성공 수신: 주문 ID {}", data.orderId());
-                orderService.updateStatus(data.orderId(), OrderStatus.COMPLETED);
-            } else if("CardFailed".equals(event.type())) {
-                log.warn("카드 결제 실패 수신 - 주문 ID {}: 사유 {}", data.orderId(), data.reason());
-                orderService.updateStatus(data.orderId(), OrderStatus.FAILED);
+            try {
+                if ("CardCompleted".equals(event.type())) {
+                    log.info("최종 결제 성공 수신: 주문 ID {}", data.orderId());
+                    orderService.updateStatus(data.orderId(), OrderStatus.COMPLETED);
+                } else if ("CardFailed".equals(event.type())) {
+                    log.warn("카드 결제 실패 수신 - 주문 ID {}: 사유 {}", data.orderId(), data.reason());
+                    orderService.updateStatus(data.orderId(), OrderStatus.FAILED);
+                }
+            } catch (Exception e) {
+                log.error("카드 이벤트 처리 중 오류 발생 (주문 ID : {}) 재시도 수행", data.orderId());
+                throw e;
             }
         };
     }
@@ -43,9 +49,14 @@ public class OrderConsumer {
     public Consumer<DomainEvent> pointEventsConsumer() {
         return event -> {
             DomainEvent.EventPayload data = event.payload();
-            if ("PointFailed".equals(event.type())) {
-                log.warn("포인트 차감 실패 수신 - 주문 ID {}: 사유 {}", data.orderId(), data.reason());
-                orderService.updateStatus(data.orderId(), OrderStatus.FAILED);
+            try {
+                if ("PointFailed".equals(event.type())) {
+                    log.warn("포인트 차감 실패 수신 - 주문 ID {}: 사유 {}", data.orderId(), data.reason());
+                    orderService.updateStatus(data.orderId(), OrderStatus.FAILED);
+                }
+            } catch (Exception e) {
+                log.error("포인트 이벤트 처리 중 오류 발생 (주문 ID : {}) 재시도 수행", data.orderId());
+                throw e;
             }
         };
     }
