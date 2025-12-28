@@ -3,7 +3,7 @@ Content-Type: application/json
 
 {
   "userId": 1,
-  "totalAmount": 2000000,
+  "totalAmount": 123456,
   "pointAmount": 0,
   "requestId": "{{$random.uuid}}"
 }

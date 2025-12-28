@@ -29,10 +29,14 @@ repositories {
 }
 
 dependencies {
+    // Spring Cloud Circuit Breaker와 함께 Resilience4j 어노테이션 기반 설정을 위해 추가
+    implementation 'io.github.resilience4j:resilience4j-spring-boot3'
+    implementation 'org.springframework.boot:spring-boot-starter-aop:4.0.0-M2'
+    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
+
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework.cloud:spring-cloud-stream-binder-kafka'
     implementation 'org.springframework.cloud:spring-cloud-stream'
-    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     testImplementation 'org.springframework.cloud:spring-cloud-stream-test-binder'
     compileOnly 'org.projectlombok:lombok'
