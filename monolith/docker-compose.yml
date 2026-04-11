@@ -1,0 +1,24 @@
+services:
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb-local
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      # 루트 계정 비밀번호
+      MARIADB_ROOT_PASSWORD: root_password
+      # 초기 생성할 DB 명
+      MARIADB_DATABASE: monolith
+      # 서비스에서 사용할 일반 사용자 계정
+      MARIADB_USER: user_name
+      MARIADB_PASSWORD: user_password
+    volumes:
+      # 하단에 정의한 'mariadb_data' 볼륨을 컨테이너 내부의 DB 경로에 매핑
+      - mariadb_data:/var/lib/mysql
+
+# Docker 엔진이 관리하는 별도의 볼륨 생성
+volumes:
+  mariadb_data:
+    # 볼륨의 이름을 명시적으로 지정하여 관리를 용이하게 함
+    driver: local

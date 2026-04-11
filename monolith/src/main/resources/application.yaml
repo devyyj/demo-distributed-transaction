@@ -1,3 +1,16 @@
 spring:
-  application:
-    name: monolith
+  datasource:
+    # MariaDB 공식 드라이버 사용
+    driver-class-name: org.mariadb.jdbc.Driver
+    # docker-compose에서 설정한 포트 및 DB명과 일치해야 함
+    url: jdbc:mariadb://localhost:3306/monolith
+    username: user_name
+    password: user_password
+
+  jpa:
+    # 하이버네이트가 DB 방언(Dialect)을 자동으로 감지하도록 설정 (MariaDB 최적화)
+    database-platform: org.hibernate.dialect.MariaDBDialect
+    hibernate:
+      # 개발 단계에서는 update, 운영 단계에서는 none 또는 validate 권장
+      ddl-auto: update
+    show-sql: true
