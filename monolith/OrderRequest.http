@@ -1,0 +1,10 @@
+### 주문 생성
+POST http://localhost:8080/orders
+Content-Type: application/json
+
+{
+  "userId":  1,
+  "productId": 99,
+  "totalAmount":  10000,
+  "pointAmount": 1000
+}
