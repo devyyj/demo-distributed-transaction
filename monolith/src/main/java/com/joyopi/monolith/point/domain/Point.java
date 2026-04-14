@@ -1,4 +1,4 @@
-package com.joyopi.monolith.order.domain;
+package com.joyopi.monolith.point.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -9,33 +9,22 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "orders")
-@EntityListeners(AuditingEntityListener.class)
+@Table(name = "points")
 @Builder
 @Getter
-@NoArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 @AllArgsConstructor
-public class Order {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Point {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private Long userId;
 
     @Column(nullable = false)
-    private Long productId;
-
-    @Column(nullable = false)
-    private Long totalAmount;
-
-    @Column(nullable = false)
-    private Long pointAmount;
-
-    @Setter
-    @Enumerated(EnumType.STRING)
-    @Builder.Default
-    private OrderStatus status = OrderStatus.PENDING;
+    private Long balance;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
@@ -45,8 +34,7 @@ public class Order {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    public Long getPaymentAmount() {
-        return totalAmount - pointAmount;
+    public Long use(Long pointAmount){
+        return balance -= pointAmount;
     }
-
 }

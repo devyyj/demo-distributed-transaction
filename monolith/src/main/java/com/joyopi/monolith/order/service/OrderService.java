@@ -1,7 +1,8 @@
 package com.joyopi.monolith.order.service;
 
 import com.joyopi.monolith.order.domain.Order;
-import com.joyopi.monolith.order.dto.OrderRequest;
+import com.joyopi.monolith.order.dto.OrderCreateCommand;
+import com.joyopi.monolith.order.dto.OrderInfo;
 import com.joyopi.monolith.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,13 +15,9 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
 
-    public Order createOrder(OrderRequest orderRequest) {
-        Order build = Order.builder()
-                .userId(orderRequest.userId())
-                .productId(orderRequest.productId())
-                .totalAmount(orderRequest.totalAmount())
-                .pointAmount(orderRequest.pointAmount())
-                .build();
-        return orderRepository.save(build);
+    public OrderInfo createOrder(OrderCreateCommand orderCreateCommand) {
+        Order entity = orderCreateCommand.toEntity();
+        Order saved = orderRepository.save(entity);
+        return OrderInfo.from(saved);
     }
 }
