@@ -1,3 +1,12 @@
 spring:
   application:
     name: monolith
+  datasource:
+    url: jdbc:mariadb://localhost:3306/monolith
+    username: user
+    password: password
+    driver-class-name: org.mariadb.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true

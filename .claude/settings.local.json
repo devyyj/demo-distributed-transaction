@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(docker compose *)",
+      "Bash(./gradlew build *)",
+      "Bash(./gradlew bootRun)",
+      "Bash(curl -s http://localhost:8080/actuator/health)",
+      "Bash(jobs -l)",
+      "Bash(kill %1)",
+      "Bash(./gradlew compileJava)",
+      "Bash(echo \"PID: $!\" sleep 15 cat /tmp/bootrun.log)",
+      "Bash(netstat -ano)",
+      "Bash(curl -s -X POST http://localhost:8080/orders -H 'Content-Type: application/json' -d '{\"userId\":1,\"productId\":100,\"totalAmount\":50000,\"pointAmount\":0}')",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s -X POST http://localhost:8080/orders -H 'Content-Type: application/json' -d '{\"userId\":1,\"productId\":101,\"totalAmount\":50000,\"pointAmount\":10000}')"
+    ]
+  }
+}

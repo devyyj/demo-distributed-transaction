@@ -1,0 +1,21 @@
+### 주문 생성 - 포인트 없이 전액 결제
+POST http://localhost:8080/orders
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "productId": 100,
+  "totalAmount": 50000,
+  "pointAmount": 0
+}
+
+### 주문 생성 - 포인트 일부 사용
+POST http://localhost:8080/orders
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "productId": 101,
+  "totalAmount": 50000,
+  "pointAmount": 10000
+}
