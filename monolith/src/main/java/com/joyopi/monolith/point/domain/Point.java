@@ -8,6 +8,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import com.joyopi.monolith.common.exception.InsufficientPointException;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -42,7 +44,7 @@ public class Point {
 
     public void use(int amount) {
         if (this.balance < amount) {
-            throw new IllegalStateException("포인트 잔액이 부족합니다. 잔액: " + this.balance + ", 요청: " + amount);
+            throw new InsufficientPointException(this.balance, amount);
         }
         this.balance -= amount;
     }

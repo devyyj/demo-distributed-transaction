@@ -9,13 +9,24 @@ Content-Type: application/json
   "pointAmount": 0
 }
 
-### 주문 생성 - 포인트 일부 사용
+### 주문 생성 - 포인트 일부 사용 (기본 포인트 10000 사용)
 POST http://localhost:8080/orders
 Content-Type: application/json
 
 {
-  "userId": 1,
+  "userId": 2,
   "productId": 101,
   "totalAmount": 50000,
   "pointAmount": 10000
+}
+
+### [실패 케이스] 포인트 잔액 부족 - 보유 포인트(10000) 초과 사용 시도
+POST http://localhost:8080/orders
+Content-Type: application/json
+
+{
+  "userId": 3,
+  "productId": 102,
+  "totalAmount": 50000,
+  "pointAmount": 20000
 }

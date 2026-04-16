@@ -10,3 +10,9 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+point:
+  default-balance: 10000
+
+payment:
+  simulate-delay-ms: 300
