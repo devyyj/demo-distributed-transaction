@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "AfterAgent": [
+      {
+        "hooks": [
+          {
+            "name": "gemini-quality-check",
+            "type": "command",
+            "command": "powershell.exe -File gemini-hook.ps1",
+            "timeout": 60000
+          }
+        ]
+      }
+    ]
+  }
+}
