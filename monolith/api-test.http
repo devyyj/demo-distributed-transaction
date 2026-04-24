@@ -1,0 +1,21 @@
+### 주문 생성 (성공 케이스)
+POST http://localhost:8080/api/orders
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "productId": 101,
+  "totalAmount": 5000,
+  "pointAmount": 1000
+}
+
+### 주문 생성 (포인트 부족 실패 케이스 - 10000 포인트 기본 제공 가정)
+POST http://localhost:8080/api/orders
+Content-Type: application/json
+
+{
+  "userId": 2,
+  "productId": 102,
+  "totalAmount": 20000,
+  "pointAmount": 15000
+}
